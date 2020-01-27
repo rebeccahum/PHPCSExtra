@@ -18,14 +18,13 @@ php:
   - 7.0
   - 7.1
   - 7.2
-  - 7.3
 
 env:
   jobs:
     # `master`
     - PHPCS_VERSION="dev-master" LINT=1
     # Lowest supported PHPCS version.
-    - PHPCS_VERSION="3.3.1"
+    - PHPCS_VERSION="3.2.0"
 
 # Define the stages used.
 # For non-PRs, only the sniff and quicktest stages are run.
@@ -78,12 +77,12 @@ jobs:
       php: 7.4
       env: PHPCS_VERSION="dev-master" LINT=1
     - php: 7.3
-      env: PHPCS_VERSION="3.3.1"
+      env: PHPCS_VERSION="3.2.0"
 
     - php: 5.4
       env: PHPCS_VERSION="dev-master" LINT=1
     - php: 5.4
-      env: PHPCS_VERSION="3.3.1"
+      env: PHPCS_VERSION="3.2.0"
 
     #### TEST STAGE ####
     # Additional builds to prevent issues with PHPCS versions incompatible with certain PHP versions.
@@ -93,6 +92,12 @@ jobs:
     # PHPCS is only compatible with PHP 7.4 as of version 3.5.0.
     - php: 7.4
       env: PHPCS_VERSION="3.5.0"
+
+    - php: 7.3
+      env: PHPCS_VERSION="dev-master" LINT=1
+    # PHPCS is only compatible with PHP 7.3 as of version 3.3.1.
+    - php: 7.3
+      env: PHPCS_VERSION="3.3.1"
 
     - php: "nightly"
       env: PHPCS_VERSION="n/a" LINT=1
@@ -127,6 +132,9 @@ install:
       # The sniff stage doesn't run the unit tests, so no need for PHPUnit.
       # The build on nightly also doesn't run the tests (yet).
       composer remove --dev phpunit/phpunit --no-update --no-scripts
+    elif [[ "$PHPCS_VERSION" < "3.2.3" ]]; then
+      # PHPCS < 3.2.3 is not compatible with PHPUnit 7.x.
+      composer require --dev phpunit/phpunit:"^4.0||^5.0||^6.0" --no-update --no-scripts
     fi
 
   # --prefer-dist will allow for optimal use of the travis caching ability.
