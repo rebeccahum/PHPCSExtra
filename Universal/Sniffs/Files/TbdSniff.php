@@ -8,7 +8,7 @@
  * @link      https://github.com/PHPCSStandards/PHPCSExtra
  */
 
-namespace PHPCSExtra\Universal\Sniffs\Tbd;
+namespace PHPCSExtra\Universal\Sniffs\Files\Tbd;
 
 use PHP_CodeSniffer\Sniffs\Sniff;
 use PHP_CodeSniffer\Files\File;
@@ -23,7 +23,14 @@ class TbdSniff extends AbstractScopeSniff
 	 * 
 	 * 	@var bool
 	 */
-	private $ooScopeSeen;
+	private $ooScopeSeen = false;
+
+	/**
+	 * Whether we have already scanned this file or not.
+	 * 
+	 * 	@var bool
+	 */
+	private $fileScanned = false;
 
 	/**
 	 * Current file being scanned.
@@ -87,20 +94,25 @@ class TbdSniff extends AbstractScopeSniff
 		$fileName = $phpcsFile->getFilename();
 		if ( $this->currentFile !== $fileName ) {
 			$this->currentFile = $fileName;
-			$this->ooScopeSeen = false; // Reset on new file.
+			// Reset on new file.
+			$this->fileScanned = false;
+			$this->ooScopeSeen = false; 
 		}
 
-		$ooToken = $phpcsFile->findNext( 
-			$this->ooOutsideScopeTokens,
-			0, // Look in beginning for OO tokens.
-			null,
-			false
-		);
+		if ( $this->fileScanned === false ) {
+			$ooToken = $phpcsFile->findNext( 
+				$this->ooOutsideScopeTokens,
+				0, // Look in beginning for OO tokens.
+				null,
+				false
+			);
 
-		$tokens = $phpcsFile->getTokens();
-		if ( isset( $this->ooOutsideScopeTokens[ $tokens[ $ooToken ]['code'] ] ) ) {
-			// Found one! Set flag.
-			$this->ooScopeSeen = true;
+			$tokens = $phpcsFile->getTokens();
+			if ( isset( $this->ooOutsideScopeTokens[ $tokens[ $ooToken ]['code'] ] ) ) {
+				// Found one! Set flag.
+				$this->ooScopeSeen = true;
+			}
+			$this->fileScanned = true;
 		}
 
 		if ( $this->ooScopeSeen === true ) {
